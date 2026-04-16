@@ -35,15 +35,7 @@ resource "null_resource" "update_lca_settings_initial" {
   }
 
   provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command = <<-EOT
-      aws lambda invoke \
-        --function-name ${aws_lambda_function.update_lca_settings.function_name} \
-        --payload '{"LCASettingsName":"${aws_ssm_parameter.lca_settings.name}","LCASettingsKeyValuePairs":{"CategoryAlertRegex":"${var.category_alert_regex}"}}' \
-        --cli-binary-format raw-in-base64-out \
-        --region ${var.region} \
-        /tmp/update-settings-response.json && cat /tmp/update-settings-response.json
-    EOT
+    command = "aws lambda invoke --function-name ${aws_lambda_function.update_lca_settings.function_name} --payload \"{\\\"LCASettingsName\\\":\\\"${aws_ssm_parameter.lca_settings.name}\\\",\\\"LCASettingsKeyValuePairs\\\":{\\\"CategoryAlertRegex\\\":\\\"${var.category_alert_regex}\\\"}}\" --cli-binary-format raw-in-base64-out --region ${var.region} update-settings-response.json"
   }
 
   depends_on = [
@@ -76,15 +68,7 @@ resource "null_resource" "seed_llm_prompts" {
   }
 
   provisioner "local-exec" {
-    interpreter = ["/bin/bash", "-c"]
-    command = <<-EOT
-      aws lambda invoke \
-        --function-name ${aws_lambda_function.llm_prompt_upload.function_name} \
-        --payload '{"LLMPromptTemplateTableName":"${var.llm_prompt_table_name}"}' \
-        --cli-binary-format raw-in-base64-out \
-        --region ${var.region} \
-        /tmp/seed-prompts-response.json && cat /tmp/seed-prompts-response.json
-    EOT
+    command = "aws lambda invoke --function-name ${aws_lambda_function.llm_prompt_upload.function_name} --payload \"{\\\"LLMPromptTemplateTableName\\\":\\\"${var.llm_prompt_table_name}\\\"}\" --cli-binary-format raw-in-base64-out --region ${var.region} seed-prompts-response.json"
   }
 
   depends_on = [aws_lambda_function.llm_prompt_upload]
