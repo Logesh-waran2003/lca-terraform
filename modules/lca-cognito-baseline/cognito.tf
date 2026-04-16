@@ -141,37 +141,6 @@ resource "aws_cognito_user_group" "admin" {
   user_pool_id = aws_cognito_user_pool.main.id
 }
 
-resource "null_resource" "admin_user" {
-  triggers = {
-    user_pool_id = aws_cognito_user_pool.main.id
-    admin_email  = var.admin_email
-  }
-
-  provisioner "local-exec" {
-    interpreter = ["bash", "-l", "-c"]
-    command     = "aws cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.main.id} --username ${var.admin_email} --user-attributes Name=email,Value=${var.admin_email} Name=email_verified,Value=true --desired-delivery-mediums EMAIL --region ${var.region} || true"
-  }
-
-  depends_on = [aws_lambda_permission.cognito_invoke_email_verify]
-}
-
-resource "null_resource" "admin_user_group" {
-  triggers = {
-    user_pool_id = aws_cognito_user_pool.main.id
-    admin_email  = var.admin_email
-  }
-
-  provisioner "local-exec" {
-    interpreter = ["bash", "-l", "-c"]
-    command     = "aws cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.main.id} --username ${var.admin_email} --group-name Admin --region ${var.region}"
-  }
-
-  depends_on = [
-    aws_cognito_user_group.admin,
-    null_resource.admin_user
-  ]
-}
-
 resource "aws_cognito_identity_pool" "main" {
   identity_pool_name               = "identity-pool-${var.lob}"
   allow_unauthenticated_identities = false
