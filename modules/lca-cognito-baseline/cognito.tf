@@ -148,7 +148,8 @@ resource "null_resource" "admin_user" {
   }
 
   provisioner "local-exec" {
-    command = "aws cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.main.id} --username ${var.admin_email} --user-attributes Name=email,Value=${var.admin_email} Name=email_verified,Value=true --desired-delivery-mediums EMAIL --region ${var.region} || echo \"User may already exist, continuing\""
+    interpreter = ["bash", "-c"]
+    command     = "aws cognito-idp admin-create-user --user-pool-id ${aws_cognito_user_pool.main.id} --username ${var.admin_email} --user-attributes Name=email,Value=${var.admin_email} Name=email_verified,Value=true --desired-delivery-mediums EMAIL --region ${var.region} || true"
   }
 
   depends_on = [aws_lambda_permission.cognito_invoke_email_verify]
@@ -161,7 +162,8 @@ resource "null_resource" "admin_user_group" {
   }
 
   provisioner "local-exec" {
-    command = "aws cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.main.id} --username ${var.admin_email} --group-name Admin --region ${var.region}"
+    interpreter = ["bash", "-c"]
+    command     = "aws cognito-idp admin-add-user-to-group --user-pool-id ${aws_cognito_user_pool.main.id} --username ${var.admin_email} --group-name Admin --region ${var.region}"
   }
 
   depends_on = [

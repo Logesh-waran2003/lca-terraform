@@ -68,7 +68,8 @@ resource "null_resource" "associate_connect_instance" {
   }
 
   provisioner "local-exec" {
-    command = "aws lambda invoke --function-name ${aws_lambda_function.functions["associate_instance"].function_name} --payload \"{\\\"ConnectInstanceArn\\\":\\\"${var.connect_instance_arn}\\\",\\\"CallDataStreamArn\\\":\\\"${var.call_data_stream_arn}\\\"}\" --cli-binary-format raw-in-base64-out --region ${var.region} associate-response.json"
+    interpreter = ["bash", "-c"]
+    command     = "aws lambda invoke --function-name ${aws_lambda_function.functions["associate_instance"].function_name} --payload '{\"ConnectInstanceArn\":\"${var.connect_instance_arn}\",\"CallDataStreamArn\":\"${var.call_data_stream_arn}\"}' --cli-binary-format raw-in-base64-out --region ${var.region} associate-response.json"
   }
 
   depends_on = [aws_lambda_function.functions]
