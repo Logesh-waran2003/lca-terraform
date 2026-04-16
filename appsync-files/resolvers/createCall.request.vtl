@@ -1,0 +1,57 @@
+#set( $shardsInDay = 6 )
+#set( $shardDivider = 24 / $shardsInDay )
+#set( $Integer = 0 )
+#set( $now = $util.time.nowISO8601() )
+
+#set( $date = $now.substring(0, 10) )
+#set( $hourString = $now.substring(11, 13) )
+#set( $hour = $Integer.parseInt($hourString) )
+
+#set( $hourShard = $hour / $shardDivider )
+#set( $shardPad = $date.format("%02d", $hourShard) )
+
+#set( $PK = "c#${ctx.args.input.CallId}" )
+
+#set( $listPk = "cls#${date}#s#${shardPad}" )
+#set( $listSk = "ts#${now}#id#${ctx.args.input.CallId}" )
+
+#set( $CreatedAt = $util.defaultIfNullOrBlank($ctx.args.input.CreatedAt, $util.time.nowISO8601()) )
+
+$util.qr($ctx.args.input.put("UpdatedAt", $now))
+$util.qr($ctx.args.input.put("Status", "STARTED"))
+
+{
+  "version" : "2018-05-29",
+  "operation" : "TransactWriteItems",
+  "transactItems": [
+    {
+      "table": "$ctx.stash.get('tableName')",
+      "operation": "PutItem",
+      "key" : {
+        "PK": $util.dynamodb.toDynamoDBJson($PK),
+        "SK": $util.dynamodb.toDynamoDBJson($PK)
+      },
+      "attributeValues": $util.dynamodb.toMapValuesJson($ctx.args.input),
+      "condition": {
+        "expression": "attribute_not_exists(#PK)",
+        "expressionNames": {
+          "#PK": "PK"
+        }
+      }
+    },
+    {
+      "table": "$ctx.stash.get('tableName')",
+      "operation": "PutItem",
+      "key" : {
+        "PK": $util.dynamodb.toDynamoDBJson($listPk),
+        "SK": $util.dynamodb.toDynamoDBJson($listSk)
+      },
+      "attributeValues": {
+        "CallId": $util.dynamodb.toDynamoDBJson($ctx.args.input.CallId),
+        "CreatedAt": $util.dynamodb.toDynamoDBJson($ctx.args.input.CreatedAt),
+        "UpdatedAt": $util.dynamodb.toDynamoDBJson($ctx.args.input.UpdatedAt),
+        "ExpiresAfter": $util.dynamodb.toDynamoDBJson($ctx.args.input.ExpiresAfter)
+      }
+    }
+  ]
+}

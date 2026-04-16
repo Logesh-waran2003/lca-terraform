@@ -1,8 +1,8 @@
 lob = {
   name                 = "wellington"
-  connect_instance_arn = "arn:aws:connect:us-east-1:025066253495:instance/REPLACE_ME"
-  allowed_email_domain = "wellington.com"
-  admin_email          = "admin@wellington.com"
+  connect_instance_arn = "arn:aws:connect:us-east-1:025066253495:instance/0e3e5a33-1ece-46a9-ac95-a50e2e6f1e20"
+  allowed_email_domain = "crcgroup.com"
+  admin_email          = "bramesh@crcgroup.com"
 }
 
 aws_region = "us-east-1"
