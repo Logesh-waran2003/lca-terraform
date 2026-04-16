@@ -64,6 +64,7 @@ resource "aws_lambda_invocation" "associate_connect_instance" {
   function_name = aws_lambda_function.functions["associate_instance"].function_name
 
   input = jsonencode({
+    RequestType        = "Create"
     ConnectInstanceArn = var.connect_instance_arn
     CallDataStreamArn  = var.call_data_stream_arn
   })

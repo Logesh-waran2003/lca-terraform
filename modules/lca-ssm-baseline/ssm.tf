@@ -33,6 +33,7 @@ resource "aws_lambda_invocation" "update_lca_settings_initial" {
   function_name = aws_lambda_function.update_lca_settings.function_name
 
   input = jsonencode({
+    RequestType              = "Create"
     LCASettingsName          = aws_ssm_parameter.lca_settings.name
     LCASettingsKeyValuePairs = {
       CategoryAlertRegex = var.category_alert_regex
@@ -67,6 +68,7 @@ resource "aws_lambda_invocation" "seed_llm_prompts" {
   function_name = aws_lambda_function.llm_prompt_upload.function_name
 
   input = jsonencode({
+    RequestType                = "Create"
     LLMPromptTemplateTableName = var.llm_prompt_table_name
   })
 
