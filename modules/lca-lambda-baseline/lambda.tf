@@ -60,17 +60,13 @@ resource "aws_lambda_event_source_mapping" "kinesis_trigger" {
   enabled                            = true
 }
 
-resource "null_resource" "associate_connect_instance" {
-  triggers = {
-    function_name        = aws_lambda_function.functions["associate_instance"].function_name
-    connect_instance_arn = var.connect_instance_arn
-    stream_arn           = var.call_data_stream_arn
-  }
+resource "aws_lambda_invocation" "associate_connect_instance" {
+  function_name = aws_lambda_function.functions["associate_instance"].function_name
 
-  provisioner "local-exec" {
-    interpreter = ["bash", "-c"]
-    command     = "aws lambda invoke --function-name ${aws_lambda_function.functions["associate_instance"].function_name} --payload '{\"ConnectInstanceArn\":\"${var.connect_instance_arn}\",\"CallDataStreamArn\":\"${var.call_data_stream_arn}\"}' --cli-binary-format raw-in-base64-out --region ${var.region} associate-response.json"
-  }
+  input = jsonencode({
+    ConnectInstanceArn = var.connect_instance_arn
+    CallDataStreamArn  = var.call_data_stream_arn
+  })
 
   depends_on = [aws_lambda_function.functions]
 }

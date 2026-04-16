@@ -29,15 +29,15 @@ resource "aws_lambda_function" "update_lca_settings" {
   }
 }
 
-resource "null_resource" "update_lca_settings_initial" {
-  triggers = {
-    parameter_name = aws_ssm_parameter.lca_settings.name
-  }
+resource "aws_lambda_invocation" "update_lca_settings_initial" {
+  function_name = aws_lambda_function.update_lca_settings.function_name
 
-  provisioner "local-exec" {
-    interpreter = ["bash", "-c"]
-    command     = "aws lambda invoke --function-name ${aws_lambda_function.update_lca_settings.function_name} --payload '{\"LCASettingsName\":\"${aws_ssm_parameter.lca_settings.name}\",\"LCASettingsKeyValuePairs\":{\"CategoryAlertRegex\":\"${var.category_alert_regex}\"}}' --cli-binary-format raw-in-base64-out --region ${var.region} update-settings-response.json"
-  }
+  input = jsonencode({
+    LCASettingsName          = aws_ssm_parameter.lca_settings.name
+    LCASettingsKeyValuePairs = {
+      CategoryAlertRegex = var.category_alert_regex
+    }
+  })
 
   depends_on = [
     aws_lambda_function.update_lca_settings,
@@ -63,15 +63,12 @@ resource "aws_lambda_function" "llm_prompt_upload" {
   }
 }
 
-resource "null_resource" "seed_llm_prompts" {
-  triggers = {
-    table_name = var.llm_prompt_table_name
-  }
+resource "aws_lambda_invocation" "seed_llm_prompts" {
+  function_name = aws_lambda_function.llm_prompt_upload.function_name
 
-  provisioner "local-exec" {
-    interpreter = ["bash", "-c"]
-    command     = "aws lambda invoke --function-name ${aws_lambda_function.llm_prompt_upload.function_name} --payload '{\"LLMPromptTemplateTableName\":\"${var.llm_prompt_table_name}\"}' --cli-binary-format raw-in-base64-out --region ${var.region} seed-prompts-response.json"
-  }
+  input = jsonencode({
+    LLMPromptTemplateTableName = var.llm_prompt_table_name
+  })
 
   depends_on = [aws_lambda_function.llm_prompt_upload]
 }
