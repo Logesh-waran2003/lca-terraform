@@ -86,6 +86,7 @@ resource "aws_cognito_user_pool" "main" {
 <p>Thanks,</p>
 <p>Live Call Analytics with Agent Assist</p>
 EOF
+      sms_message   = "Your username is {username} and temporary password is {####}."
     }
   }
 
