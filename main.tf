@@ -1,3 +1,27 @@
+# ── Resource Moves (IAM → Cognito module refactor) ──
+# These tell Terraform the resources were moved, not deleted+recreated.
+# Safe to remove after first successful apply.
+
+moved {
+  from = module.lca_iam.aws_iam_role.cognito_authorized
+  to   = module.lca_cognito.aws_iam_role.cognito_authorized
+}
+
+moved {
+  from = module.lca_iam.aws_iam_role.agent_assist_unauth
+  to   = module.lca_cognito.aws_iam_role.agent_assist_unauth
+}
+
+moved {
+  from = module.lca_iam.aws_iam_role_policy.cognito_authorized_inline
+  to   = module.lca_cognito.aws_iam_role_policy.cognito_authorized_inline
+}
+
+moved {
+  from = module.lca_iam.aws_iam_role_policy.agent_assist_unauth_inline
+  to   = module.lca_cognito.aws_iam_role_policy.agent_assist_unauth_inline
+}
+
 locals {
   lob = var.lob.name
 
