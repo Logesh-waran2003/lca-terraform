@@ -47,3 +47,8 @@ variable "lca_settings_parameter_arn" {
   description = "ARN of the SSM parameter for LCA settings"
   type        = string
 }
+
+variable "cloudfront_domain" {
+  description = "CloudFront distribution domain name (e.g. dxxxxxx.cloudfront.net)"
+  type        = string
+}

@@ -29,15 +29,11 @@ resource "aws_cognito_user_pool" "main" {
   username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
 
-  username_configuration {
-    case_sensitive = false
-  }
-
   schema {
     name                = "email"
     attribute_data_type = "String"
     required            = true
-    mutable             = false
+    mutable             = true
 
     string_attribute_constraints {
       min_length = 0
@@ -79,11 +75,26 @@ resource "aws_cognito_user_pool" "main" {
 
   admin_create_user_config {
     allow_admin_create_user_only = false
+
+    invite_message_template {
+      email_subject = "Welcome to Live Call Analytics with Agent Assist!"
+      email_message = <<-EOF
+<p>Hello {username},</p>
+<p>Welcome to Live Call Analytics with Agent Assist (LCA)! Your temporary password is: <strong>{####}</strong></p>
+<p>Use the link below to log in and set your permanent password.</p>
+<p>     https://${var.cloudfront_domain}/</p>
+<p>Thanks,</p>
+<p>Live Call Analytics with Agent Assist</p>
+EOF
+    }
   }
 
   email_configuration {
     email_sending_account = "COGNITO_DEFAULT"
   }
+
+  email_verification_message = "Please verify your email to complete account registration. Confirmation Code {####}."
+  email_verification_subject = "Account Verification"
 
   tags = {
     Project     = "LCA"
@@ -117,6 +128,13 @@ resource "aws_cognito_user_pool_client" "main" {
 
   supported_identity_providers = ["COGNITO"]
 
+  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_scopes                 = ["openid", "email", "profile"]
+  allowed_oauth_flows_user_pool_client = true
+
+  callback_urls = ["https://${var.cloudfront_domain}"]
+  logout_urls   = ["https://${var.cloudfront_domain}"]
+
   access_token_validity  = 1
   id_token_validity      = 1
   refresh_token_validity = 30
@@ -130,8 +148,13 @@ resource "aws_cognito_user_pool_client" "main" {
   prevent_user_existence_errors = "ENABLED"
   enable_token_revocation       = true
 
-  read_attributes  = ["email", "email_verified", "preferred_username"]
+  read_attributes  = ["email", "email_verified", "preferred_username", "custom:email_alias"]
+  write_attributes = ["email", "custom:email_alias"]
   generate_secret  = false
+
+  lifecycle {
+    ignore_changes = [supported_identity_providers]
+  }
 }
 
 resource "aws_cognito_user_group" "admin" {
@@ -293,4 +316,24 @@ resource "aws_iam_role_policy" "agent_assist_unauth_inline" {
       Resource = ["*"]
     }]
   })
+}
+
+# ── Admin User ──
+
+resource "aws_cognito_user" "admin" {
+  user_pool_id = aws_cognito_user_pool.main.id
+  username     = var.admin_email
+
+  attributes = {
+    email          = var.admin_email
+    email_verified = "true"
+  }
+
+  desired_delivery_mediums = ["EMAIL"]
+}
+
+resource "aws_cognito_user_in_group" "admin" {
+  user_pool_id = aws_cognito_user_pool.main.id
+  group_name   = aws_cognito_user_group.admin.name
+  username     = aws_cognito_user.admin.username
 }

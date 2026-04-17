@@ -236,7 +236,23 @@ module "lca_notifications" {
   account_id = var.account_id
 }
 
-# ── GROUP 2 — Needs DynamoDB, Storage, Kinesis, Notifications ──
+# ── GROUP 2 — Needs Storage ──
+
+module "lca_frontend" {
+  source                 = "./modules/lca-frontend-baseline"
+  lob                    = local.lob
+  region                 = var.aws_region
+  account_id             = var.account_id
+  webapp_bucket_name     = module.lca_storage.webapp_bucket_name
+  webapp_bucket_arn      = module.lca_storage.webapp_bucket_arn
+  cloudfront_price_class = var.cloudfront_price_class
+
+  depends_on = [
+    module.lca_storage
+  ]
+}
+
+# ── GROUP 3 — Needs DynamoDB, Storage, Kinesis, Notifications ──
 
 module "lca_iam" {
   source                     = "./modules/lca-iam-baseline"
@@ -258,7 +274,7 @@ module "lca_iam" {
   ]
 }
 
-# ── GROUP 3 — Needs IAM, DynamoDB ──
+# ── GROUP 4 — Needs IAM, DynamoDB ──
 
 module "lca_ssm" {
   source                    = "./modules/lca-ssm-baseline"
@@ -276,7 +292,7 @@ module "lca_ssm" {
   ]
 }
 
-# ── GROUP 4 — Needs IAM, Storage, SSM ──
+# ── GROUP 5 — Needs IAM, Storage, SSM, Frontend ──
 
 module "lca_cognito" {
   source                      = "./modules/lca-cognito-baseline"
@@ -290,15 +306,17 @@ module "lca_cognito" {
   recordings_bucket_name      = module.lca_storage.recordings_bucket_name
   settings_parameter_name     = module.lca_ssm.settings_parameter_name
   lca_settings_parameter_arn  = local.lca_settings_parameter_arn
+  cloudfront_domain           = module.lca_frontend.cloudfront_domain_name
 
   depends_on = [
     module.lca_iam,
     module.lca_storage,
-    module.lca_ssm
+    module.lca_ssm,
+    module.lca_frontend
   ]
 }
 
-# ── GROUP 5 — Needs Cognito, DynamoDB, IAM ──
+# ── GROUP 6 — Needs Cognito, DynamoDB, IAM ──
 
 module "lca_appsync" {
   source                    = "./modules/lca-appsync-baseline"
@@ -318,7 +336,7 @@ module "lca_appsync" {
   ]
 }
 
-# ── GROUP 6 — Needs everything above ──
+# ── GROUP 7 — Needs everything above ──
 
 module "lca_lambda" {
   source               = "./modules/lca-lambda-baseline"
@@ -341,7 +359,7 @@ module "lca_lambda" {
   ]
 }
 
-# ── GROUP 7 — Needs Lambda, Kinesis, DynamoDB, IAM ──
+# ── GROUP 8 — Needs Lambda, Kinesis, DynamoDB, IAM ──
 
 module "lca_connect" {
   source                               = "./modules/lca-connect-baseline"
@@ -363,21 +381,5 @@ module "lca_connect" {
     module.lca_kinesis,
     module.lca_dynamodb,
     module.lca_iam
-  ]
-}
-
-# ── GROUP 8 — Needs Storage ──
-
-module "lca_frontend" {
-  source                 = "./modules/lca-frontend-baseline"
-  lob                    = local.lob
-  region                 = var.aws_region
-  account_id             = var.account_id
-  webapp_bucket_name     = module.lca_storage.webapp_bucket_name
-  webapp_bucket_arn      = module.lca_storage.webapp_bucket_arn
-  cloudfront_price_class = var.cloudfront_price_class
-
-  depends_on = [
-    module.lca_storage
   ]
 }

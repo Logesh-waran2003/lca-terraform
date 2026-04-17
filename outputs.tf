@@ -63,6 +63,7 @@ output "react_env_file" {
     REACT_APP_CLOUDFRONT_DOMAIN=${module.lca_frontend.cloudfront_url}
     REACT_APP_SETTINGS_PARAMETER=${module.lca_ssm.settings_parameter_name}
     REACT_APP_ENABLE_LEX_AGENT_ASSIST=${tostring(var.is_lex_agent_assist_enabled)}
+    REACT_APP_COGNITO_DOMAIN=${module.lca_cognito.cognito_domain}
 
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     Post-apply manual steps:
@@ -71,9 +72,8 @@ output "react_env_file" {
        Entity ID: ${module.lca_cognito.saml_entity_id}
        ACS URL:   ${module.lca_cognito.saml_acs_url}
 
-    2. After Azure app created:
-       aws cognito-idp create-identity-provider (EntraID SAML)
-       aws cognito-idp create-user-pool-client (OAuth client)
+    2. After Azure app created, add EntraID SAML provider in Cognito console
+       and add "EntraID" to the app client's supported identity providers.
 
     3. React build:
        Fill .env with values above
