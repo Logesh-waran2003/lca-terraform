@@ -50,11 +50,15 @@ OVERVIEW:
   Settings:
     Provider name:    EntraID
     Provider type:    SAML
-    Metadata:         Use the App Federation Metadata URL from Azure
-                      (found in SAML Certificates section of the Enterprise App)
-    Attribute mapping:
-      - SAML attribute: http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
-        Cognito attribute: email
+    IdP-initiated:    Accept SP-initiated and IdP-initiated SAML assertions
+    Metadata URL:     https://login.microsoftonline.com/ca9e3c59-d8ec-4ee6-9544-05f62f85ac98/federationmetadata/2007-06/federationmetadata.xml?appid=5b975f83-0067-40e6-9fbf-bf67f3fc2579
+
+    Attribute mapping (3 mappings — ALL required):
+      User Pool Attribute       SAML Attribute
+      -------------------------  ----------------------------------------------------------
+      email                      http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
+      custom:email_alias         http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
+      username                   http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
 
 ================================================================================
   STEP 3: UPDATE APP CLIENT IDENTITY PROVIDERS
