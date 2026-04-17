@@ -1,0 +1,111 @@
+================================================================================
+  SSO MIGRATION GUIDE — CF Pool → Terraform Pool
+  Generated: 2026-04-17
+================================================================================
+
+OVERVIEW:
+  Migrate the existing Azure Enterprise App SSO from the old CloudFormation
+  Cognito pool to the new Terraform-managed pool. Only 3 fields change in Azure.
+
+================================================================================
+  STEP 1: UPDATE AZURE ENTERPRISE APP
+================================================================================
+
+  App Name: [TIH-Wellington] AWS LCA SSO QA
+  Location: Azure Portal → Enterprise Applications → Single sign-on → SAML
+
+  CHANGE 1 — Entity ID (Identifier):
+  -----------------------------------
+  Old: urn:amazon:cognito:sp:us-east-1_xMpaynTV9
+  New: urn:amazon:cognito:sp:us-east-1_lKwEZucGc
+
+  CHANGE 2 — Reply URL (Assertion Consumer Service URL):
+  ------------------------------------------------------
+  Old: https://tih-wellington-lca-qa.auth.us-east-1.amazoncognito.com/saml2/idpresponse
+  New: https://tih-wellington-lca.auth.us-east-1.amazoncognito.com/saml2/idpresponse
+
+  CHANGE 3 — Relay State:
+  ------------------------
+  Old: identity_provider=EntraID&client_id=6h06bfqj6v81irppstqtpphd95&redirect_uri=https://dna44ohv0ueyn.cloudfront.net&response_type=code&scope=openid+email+phone
+  New: identity_provider=EntraID&client_id=23lth23p53uv8kaoau89t9fj8u&redirect_uri=https://dmvpxsw4w04go.cloudfront.net&response_type=code&scope=openid+email+phone
+
+  DO NOT CHANGE:
+  - Sign on URL (leave empty)
+  - Logout URL (leave empty)
+  - Attributes & Claims (keep as-is)
+  - Certificates (keep as-is)
+  - NameID format (keep Persistent)
+
+================================================================================
+  STEP 2: ADD ENTRAID SAML PROVIDER IN NEW COGNITO POOL
+================================================================================
+
+  Pool ID: us-east-1_lKwEZucGc
+  Pool Name: user-pool-wellington
+
+  Go to: AWS Console → Cognito → User Pools → user-pool-wellington
+         → Sign-in experience → Federated identity provider sign-in
+         → Add identity provider
+
+  Settings:
+    Provider name:    EntraID
+    Provider type:    SAML
+    Metadata:         Use the App Federation Metadata URL from Azure
+                      (found in SAML Certificates section of the Enterprise App)
+    Attribute mapping:
+      - SAML attribute "email" → Cognito attribute "email"
+
+================================================================================
+  STEP 3: UPDATE APP CLIENT IDENTITY PROVIDERS
+================================================================================
+
+  Client ID: 23lth23p53uv8kaoau89t9fj8u
+  Client Name: user-pool-client-wellington
+
+  Go to: AWS Console → Cognito → User Pools → user-pool-wellington
+         → App integration → user-pool-client-wellington
+         → Hosted UI → Edit
+
+  Add "EntraID" to the list of Identity Providers (alongside COGNITO).
+
+================================================================================
+  STEP 4: BUILD & DEPLOY REACT UI
+================================================================================
+
+  Update .env file with these values:
+
+    REACT_APP_AWS_REGION=us-east-1
+    REACT_APP_USER_POOL_ID=us-east-1_lKwEZucGc
+    REACT_APP_USER_POOL_CLIENT_ID=23lth23p53uv8kaoau89t9fj8u
+    REACT_APP_IDENTITY_POOL_ID=us-east-1:ccc8847b-1563-4b39-856b-953df1c98dfc
+    REACT_APP_APPSYNC_GRAPHQL_URL=<from terraform output>
+    REACT_APP_CLOUDFRONT_DOMAIN=https://dmvpxsw4w04go.cloudfront.net
+    REACT_APP_SETTINGS_PARAMETER=lca-settings-wellington
+    REACT_APP_ENABLE_LEX_AGENT_ASSIST=false
+    REACT_APP_COGNITO_DOMAIN=https://tih-wellington-lca.auth.us-east-1.amazoncognito.com
+
+  Build & Deploy:
+    cd ~/amazon-transcribe-live-call-analytics/lca-ai-stack/source/ui
+    NODE_OPTIONS=--max-old-space-size=1536 npm run build
+    aws s3 sync build/ s3://webapp-bucket-wellington --delete --profile lca
+    aws cloudfront create-invalidation --distribution-id EH4CJQAFGD6WT --paths "/*" --profile lca
+
+================================================================================
+  REFERENCE: OLD vs NEW VALUES
+================================================================================
+
+  Resource                Old (CF)                              New (Terraform)
+  ----------------------  ------------------------------------  ------------------------------------
+  User Pool ID            us-east-1_xMpaynTV9                  us-east-1_lKwEZucGc
+  App Client ID           6h06bfqj6v81irppstqtpphd95           23lth23p53uv8kaoau89t9fj8u
+  Identity Pool ID        us-east-1:9cfb5050-052e-46ae-89ab-   us-east-1:ccc8847b-1563-4b39-856b-
+                          eae05437440c                         953df1c98dfc
+  Cognito Domain          tih-wellington-lca-qa.auth...        tih-wellington-lca.auth...
+  CloudFront Domain       dna44ohv0ueyn.cloudfront.net         dmvpxsw4w04go.cloudfront.net
+  CloudFront Dist ID      E1CO98XRGE0U7T                      EH4CJQAFGD6WT
+  S3 Webapp Bucket        lca-aistack-spfqarz85s1q-            webapp-bucket-wellington
+                          webappbucket-xarilravgfbq
+
+================================================================================
+  END OF GUIDE
+================================================================================
