@@ -64,6 +64,8 @@ output "react_env_file" {
     REACT_APP_SETTINGS_PARAMETER=${module.lca_ssm.settings_parameter_name}
     REACT_APP_ENABLE_LEX_AGENT_ASSIST=${tostring(var.is_lex_agent_assist_enabled)}
     REACT_APP_COGNITO_DOMAIN=${module.lca_cognito.cognito_domain}
+    REACT_APP_APP_URL=${module.lca_frontend.cloudfront_url}
+    DISABLE_ESLINT_PLUGIN=true
 
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     Post-apply manual steps:

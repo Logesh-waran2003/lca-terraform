@@ -31,5 +31,5 @@ output "saml_acs_url" {
 }
 
 output "cognito_domain" {
-  value = "https://tih-${var.lob}-lca.auth.${var.region}.amazoncognito.com"
+  value = "tih-${var.lob}-lca.auth.${var.region}.amazoncognito.com"
 }
