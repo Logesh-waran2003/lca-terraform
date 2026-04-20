@@ -156,8 +156,8 @@ resource "aws_cognito_user_pool_client" "main" {
   logout_urls          = ["https://${var.cloudfront_domain}", "https://${var.cloudfront_domain}/"]
   default_redirect_uri = "https://${var.cloudfront_domain}"
 
-  access_token_validity  = 1
-  id_token_validity      = 1
+  access_token_validity  = 24
+  id_token_validity      = 24
   refresh_token_validity = 30
 
   token_validity_units {
