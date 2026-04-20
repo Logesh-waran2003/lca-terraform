@@ -169,7 +169,7 @@ resource "aws_cognito_user_pool_client" "main" {
   prevent_user_existence_errors = "ENABLED"
   enable_token_revocation       = true
 
-  read_attributes  = ["email", "email_verified", "preferred_username", "custom:email_alias"]
+  read_attributes  = ["email", "email_verified", "phone_number", "phone_number_verified", "preferred_username", "custom:email_alias"]
   write_attributes = ["email", "custom:email_alias"]
   generate_secret  = false
 
