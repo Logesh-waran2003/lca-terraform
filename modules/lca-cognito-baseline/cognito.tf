@@ -148,12 +148,13 @@ resource "aws_cognito_user_pool_client" "main" {
 
   supported_identity_providers = ["EntraID"]
 
-  allowed_oauth_flows                  = ["code"]
+  allowed_oauth_flows                  = ["code", "implicit"]
   allowed_oauth_scopes                 = ["openid", "email", "phone"]
   allowed_oauth_flows_user_pool_client = true
 
-  callback_urls = ["https://${var.cloudfront_domain}"]
-  logout_urls   = ["https://${var.cloudfront_domain}"]
+  callback_urls        = ["https://${var.cloudfront_domain}", "https://${var.cloudfront_domain}/"]
+  logout_urls          = ["https://${var.cloudfront_domain}", "https://${var.cloudfront_domain}/"]
+  default_redirect_uri = "https://${var.cloudfront_domain}"
 
   access_token_validity  = 1
   id_token_validity      = 1
