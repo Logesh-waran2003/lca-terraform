@@ -378,7 +378,7 @@ resource "aws_iam_role_policy" "associate_instance_inline" {
           "connect:ListInstanceStorageConfigs",
           "connect:DisassociateInstanceStorageConfig"
         ]
-        Resource = [var.connect_instance_arn]
+        Resource = ["arn:aws:connect:${var.region}:${var.account_id}:instance/*"]
       },
       {
         Effect   = "Allow"
