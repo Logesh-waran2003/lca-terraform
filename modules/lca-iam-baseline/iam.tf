@@ -230,7 +230,7 @@ resource "aws_iam_role_policy" "contact_event_processor_inline" {
       {
         Effect   = "Allow"
         Action   = ["connect:DescribeUser"]
-        Resource = ["${var.connect_instance_arn}/user/*"]
+        Resource = ["${var.connect_instance_arn}/*"]
       },
       {
         Effect   = "Allow"
